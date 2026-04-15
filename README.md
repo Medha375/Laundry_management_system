@@ -108,4 +108,6 @@ Claude (Anthropic) — used as the primary development tool and Chatgpt for unde
 - JWT auth for staff vs admin roles
 - WhatsApp/SMS notification on status change
 - Deploy to Railway or Render
-- Printable order receipt
+- Printable order receipt                                                                                                                                                                                        <img width="1919" height="963" alt="Screenshot 2026-04-16 023037" src="https://github.com/user-attachments/assets/9d7b69a8-f6a0-43c3-b883-ff0b2c5c706b" />                                                        <img width="1908" height="870" alt="Screenshot 2026-04-16 023049" src="https://github.com/user-attachments/assets/90002f49-cbe9-48e3-a520-46972d7fee48" />                                                           <img width="1909" height="873" alt="Screenshot 2026-04-16 023056" src="https://github.com/user-attachments/assets/87bef541-908b-4b31-8ee0-df2bff51293e" />
+
+
