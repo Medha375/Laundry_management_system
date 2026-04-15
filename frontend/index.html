@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quick Dry Clean — Order Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #2e2e2e;
+  --accent: #e8f542;
+  --accent2: #42c8f5;
+  --danger: #f54242;
+  --success: #42f57a;
+  --warning: #f5a842;
+  --text: #f0f0f0;
+  --muted: #888;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Manrope', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px; background: var(--surface);
+  position: sticky; top: 0; z-index: 100;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.brand-name { font-family: var(--mono); font-weight: 700; font-size: 15px; }
+.brand-name span { color: var(--accent); }
+
+nav { display: flex; gap: 4px; }
+nav button {
+  background: none; border: none; color: var(--muted); font-family: var(--sans);
+  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 6px;
+  cursor: pointer; transition: all .15s;
+}
+nav button:hover { background: var(--surface2); color: var(--text); }
+nav button.active { background: var(--accent); color: #000; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+.view { display: none; }
+.view.active { display: block; }
+
+.sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.sec-title { font-size: 22px; font-weight: 800; }
+.sec-title span { color: var(--accent); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.yellow::before { background: var(--accent); }
+.stat-card.blue::before { background: var(--accent2); }
+.stat-card.green::before { background: var(--success); }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; }
+.stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.status-breakdown { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.status-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; flex: 1; min-width: 120px; }
+.status-pill .sp-count { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+.status-pill .sp-label { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; margin-top: 4px; }
+.status-pill[data-s="RECEIVED"] .sp-label { color: var(--accent2); }
+.status-pill[data-s="PROCESSING"] .sp-label { color: var(--warning); }
+.status-pill[data-s="READY"] .sp-label { color: var(--success); }
+.status-pill[data-s="DELIVERED"] .sp-label { color: var(--muted); }
+
+.trend-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.trend-title { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.trend-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
+.trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.trend-bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 4px; }
+.trend-bar-wrap span { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+input, select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: var(--sans); font-size: 14px; padding: 10px 14px;
+  outline: none; transition: border-color .15s;
+}
+input:focus, select:focus { border-color: var(--accent); }
+input::placeholder { color: #555; }
+
+.garments-section { margin: 20px 0; }
+.garments-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.garments-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+.garment-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+.price-preview { font-family: var(--mono); font-size: 13px; color: var(--accent); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sans); font-weight: 700; font-size: 13px; border: none; border-radius: 8px; cursor: pointer; padding: 10px 18px; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: #d4e030; }
+.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 8px 10px; }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.total-preview { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--accent); margin: 16px 0; }
+
+.filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-bar input, .filter-bar select { flex: 1; min-width: 140px; }
+
+.orders-table { width: 100%; border-collapse: collapse; }
+.orders-table th { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.orders-table td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+.orders-table tr:hover td { background: var(--surface2); }
+.orders-table tr:last-child td { border-bottom: none; }
+
+.order-id { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 700; }
+.customer-name { font-weight: 600; }
+.phone-num { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.amount { font-family: var(--mono); font-weight: 700; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+.badge-RECEIVED { background: rgba(66,200,245,.15); color: var(--accent2); border: 1px solid rgba(66,200,245,.3); }
+.badge-PROCESSING { background: rgba(245,168,66,.15); color: var(--warning); border: 1px solid rgba(245,168,66,.3); }
+.badge-READY { background: rgba(66,245,122,.15); color: var(--success); border: 1px solid rgba(66,245,122,.3); }
+.badge-DELIVERED { background: rgba(136,136,136,.15); color: var(--muted); border: 1px solid rgba(136,136,136,.3); }
+
+.garment-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.garment-chip { font-size: 10px; font-family: var(--mono); padding: 2px 7px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--muted); }
+
+#toast { position: fixed; bottom: 28px; right: 28px; z-index: 999; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; font-size: 14px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .25s; }
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: var(--success); color: var(--success); }
+#toast.error { border-color: var(--danger); color: var(--danger); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty .big { font-size: 40px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">👔</div>
+    <div class="brand-name">Quick<span>Dry</span>Clean</div>
+  </div>
+  <nav>
+    <button class="active" onclick="showView('dashboard')">Dashboard</button>
+    <button onclick="showView('create')">+ New Order</button>
+    <button onclick="showView('orders')">Orders</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="sec-header">
+      <div class="sec-title">Operations <span>Overview</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card yellow">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="d-total">—</div>
+        <div class="stat-sub">All time</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Revenue Collected</div>
+        <div class="stat-value" id="d-revenue">—</div>
+        <div class="stat-sub">Delivered orders</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Pending Revenue</div>
+        <div class="stat-value" id="d-pending">—</div>
+        <div class="stat-sub">Not yet delivered</div>
+      </div>
+    </div>
+    <div class="status-breakdown" id="d-statuses"></div>
+    <div class="trend-section">
+      <div class="trend-title">Orders — Last 7 Days</div>
+      <div class="trend-bars" id="d-trend"></div>
+    </div>
+  </div>
+
+  <!-- CREATE ORDER -->
+  <div class="view" id="view-create">
+    <div class="sec-header">
+      <div class="sec-title">New <span>Order</span></div>
+    </div>
+    <div class="form-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input id="f-name" type="text" placeholder="Rahul Sharma"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input id="f-phone" type="tel" placeholder="98XXXXXXXX"/>
+        </div>
+      </div>
+      <div class="garments-section">
+        <div class="garments-header">
+          <div class="garments-label">Garments</div>
+          <button class="btn btn-ghost btn-sm" onclick="addGarmentRow()">+ Add Item</button>
+        </div>
+        <div id="garments-list"></div>
+      </div>
+      <div class="total-preview">Total: ₹<span id="f-total">0</span></div>
+      <button class="btn btn-primary" onclick="createOrder()">Create Order →</button>
+    </div>
+    <div id="order-result" style="display:none; margin-top:20px;">
+      <div class="form-card" style="border-color: var(--success);">
+        <div style="font-size:13px; color:var(--success); font-weight:700; margin-bottom:12px;">✓ ORDER CREATED</div>
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+          <div><div class="stat-label">Order ID</div><div class="order-id" id="res-id" style="font-size:18px;"></div></div>
+          <div><div class="stat-label">Customer</div><div style="font-weight:600;" id="res-name"></div></div>
+          <div><div class="stat-label">Total Bill</div><div class="amount" id="res-total" style="font-size:18px;"></div></div>
+          <div><div class="stat-label">Est. Delivery</div><div id="res-date" style="font-family:var(--mono);font-size:14px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="view" id="view-orders">
+    <div class="sec-header">
+      <div class="sec-title">All <span>Orders</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻ Refresh</button>
+    </div>
+    <div class="filter-bar">
+      <input id="filter-name" type="text" placeholder="Search by name..." oninput="loadOrders()"/>
+      <input id="filter-phone" type="text" placeholder="Search by phone..." oninput="loadOrders()"/>
+      <select id="filter-status" onchange="loadOrders()">
+        <option value="">All Statuses</option>
+        <option>RECEIVED</option>
+        <option>PROCESSING</option>
+        <option>READY</option>
+        <option>DELIVERED</option>
+      </select>
+      <input id="filter-garment" type="text" placeholder="Garment type..." oninput="loadOrders()"/>
+    </div>
+    <div id="orders-container">
+      <div class="empty"><div class="big">📦</div><p>No orders yet.</p></div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+let prices = {};
+let garmentCount = 0;
+
+async function loadPrices() {
+  const res = await fetch(API + '/api/prices');
+  prices = await res.json();
+}
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach((b, i) => {
+    b.classList.toggle('active', ['dashboard','create','orders'][i] === name);
+  });
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'orders') loadOrders();
+  if (name === 'create') {
+    document.getElementById('order-result').style.display = 'none';
+    if (document.getElementById('garments-list').children.length === 0) addGarmentRow();
+    recalcTotal();
+  }
+}
+
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3000);
+}
+
+async function loadDashboard() {
+  const data = await fetch(API + '/api/dashboard').then(r => r.json());
+  document.getElementById('d-total').textContent = data.totalOrders;
+  document.getElementById('d-revenue').textContent = '₹' + data.totalRevenue.toLocaleString('en-IN');
+  document.getElementById('d-pending').textContent = '₹' + data.pendingRevenue.toLocaleString('en-IN');
+
+  document.getElementById('d-statuses').innerHTML = ['RECEIVED','PROCESSING','READY','DELIVERED'].map(s => `
+    <div class="status-pill" data-s="${s}">
+      <div class="sp-count">${data.ordersByStatus[s] || 0}</div>
+      <div class="sp-label">${s}</div>
+    </div>
+  `).join('');
+
+  const trend = data.recentTrend;
+  const days = Object.keys(trend);
+  const vals = days.map(d => trend[d]);
+  const maxVal = Math.max(...vals, 1);
+  document.getElementById('d-trend').innerHTML = days.map((d, i) => `
+    <div class="trend-bar-wrap">
+      <div class="trend-bar" style="height:${Math.max(4, (vals[i]/maxVal)*70)}px"></div>
+      <span>${d.slice(5)}</span>
+    </div>
+  `).join('');
+}
+
+function addGarmentRow() {
+  garmentCount++;
+  const id = 'g' + garmentCount;
+  const div = document.createElement('div');
+  div.className = 'garment-row';
+  div.id = id;
+  div.innerHTML = `
+    <select onchange="updateRowPrice('${id}')" id="${id}-type">
+      <option value="">Select garment</option>
+      ${Object.entries(prices).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}
+    </select>
+    <input type="number" id="${id}-qty" value="1" min="1" oninput="updateRowPrice('${id}')"/>
+    <div class="price-preview" id="${id}-price">₹0</div>
+    <button class="btn btn-danger btn-sm" onclick="removeGarment('${id}')">✕</button>
+  `;
+  document.getElementById('garments-list').appendChild(div);
+}
+
+function removeGarment(id) {
+  document.getElementById(id)?.remove();
+  recalcTotal();
+}
+
+function updateRowPrice(id) {
+  const type = document.getElementById(id + '-type')?.value;
+  const qty = parseInt(document.getElementById(id + '-qty')?.value) || 0;
+  const unitPrice = prices[type]?.price || 0;
+  const el = document.getElementById(id + '-price');
+  if (el) el.textContent = '₹' + (unitPrice * qty);
+  recalcTotal();
+}
+
+function recalcTotal() {
+  const rows = document.querySelectorAll('[id$="-price"].price-preview');
+  let total = 0;
+  rows.forEach(el => { total += parseInt(el.textContent.replace('₹','')) || 0; });
+  document.getElementById('f-total').textContent = total.toLocaleString('en-IN');
+}
+
+async function createOrder() {
+  const customerName = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  if (!customerName || !phone) return toast('Name and phone are required', 'error');
+
+  const garmentRows = document.querySelectorAll('#garments-list .garment-row');
+  const garments = [];
+  for (const row of garmentRows) {
+    const type = document.getElementById(row.id + '-type').value;
+    const quantity = parseInt(document.getElementById(row.id + '-qty').value);
+    if (type) garments.push({ type, quantity: quantity || 1 });
+  }
+  if (garments.length === 0) return toast('Add at least one garment', 'error');
+
+  const res = await fetch(API + '/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ customerName, phone, garments })
+  });
+  const data = await res.json();
+  if (!res.ok) return toast(data.error, 'error');
+
+  document.getElementById('res-id').textContent = data.id;
+  document.getElementById('res-name').textContent = data.customerName;
+  document.getElementById('res-total').textContent = '₹' + data.totalAmount.toLocaleString('en-IN');
+  document.getElementById('res-date').textContent = data.estimatedDelivery;
+  document.getElementById('order-result').style.display = 'block';
+
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('garments-list').innerHTML = '';
+  garmentCount = 0;
+  addGarmentRow();
+  recalcTotal();
+  toast('Order ' + data.id + ' created!');
+}
+
+async function loadOrders() {
+  const params = new URLSearchParams();
+  const name = document.getElementById('filter-name')?.value;
+  const phone = document.getElementById('filter-phone')?.value;
+  const status = document.getElementById('filter-status')?.value;
+  const garmentType = document.getElementById('filter-garment')?.value;
+  if (name) params.set('name', name);
+  if (phone) params.set('phone', phone);
+  if (status) params.set('status', status);
+  if (garmentType) params.set('garmentType', garmentType);
+
+  const orders = await fetch(API + '/api/orders?' + params).then(r => r.json());
+  const container = document.getElementById('orders-container');
+
+  if (orders.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="big">📦</div><p>No orders found.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th><th>Customer</th><th>Garments</th>
+          <th>Amount</th><th>Est. Delivery</th><th>Status</th><th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td>
+              <div class="order-id">${o.id}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">${new Date(o.createdAt).toLocaleDateString('en-IN')}</div>
+            </td>
+            <td>
+              <div class="customer-name">${o.customerName}</div>
+              <div class="phone-num">${o.phone}</div>
+            </td>
+            <td>
+              <div class="garment-chips">
+                ${o.garments.map(g => `<div class="garment-chip">${g.type} ×${g.quantity}</div>`).join('')}
+              </div>
+            </td>
+            <td><span class="amount">₹${o.totalAmount.toLocaleString('en-IN')}</span></td>
+            <td style="font-family:var(--mono);font-size:12px;">${o.estimatedDelivery}</td>
+            <td><span class="badge badge-${o.status}">${o.status}</span></td>
+            <td>
+              <select onchange="updateStatus('${o.id}', this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:11px;">
+                <option value="">— Move to —</option>
+                ${['RECEIVED','PROCESSING','READY','DELIVERED']
+                  .filter(s => s !== o.status)
+                  .map(s => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function updateStatus(orderId, status) {
+  if (!status) return;
+  const res = await fetch(API + '/api/orders/' + orderId + '/status', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  const data = await res.json();
+  if (!res.ok) return toast(data.error, 'error');
+  toast(orderId + ' → ' + status);
+  loadOrders();
+}
+
+(async () => {
+  await loadPrices();
+  loadDashboard();
+})();
+</script>
+</body>
+</html>
